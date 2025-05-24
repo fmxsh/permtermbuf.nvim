@@ -129,6 +129,7 @@ local function toggle_terminal(program)
 		close_terminal(program, false)
 		M.is_active = false
 		M.restore_ui_elements()
+		vim.cmd("stopinsert") -- Exit insert mode
 		--log("Close the permterm")
 		--vim.api.nvim_exec_autocmds("User", { pattern = "PermTermBufExit" })
 	else
@@ -147,6 +148,7 @@ local function toggle_terminal(program)
 			M.hide_ui_elements()
 			vim.cmd("tabnew") -- Open a new tab (simulate full screen)
 			vim.api.nvim_set_current_buf(term_buf)
+			vim.api.nvim_buf_set_option(term_buf, "spell", false) -- <- add this
 			term.win = vim.api.nvim_get_current_win()
 			vim.cmd("startinsert")
 		else
@@ -244,6 +246,13 @@ function M.setup(programs)
 		M[program.name] = {}
 		M[program.name].toggle = function()
 			toggle_terminal(program.name)
+		end
+
+		if program.auto_start then
+			vim.schedule(function()
+				toggle_terminal(program.name)
+				toggle_terminal(program.name)
+			end)
 		end
 
 		-- Add this for debugging
